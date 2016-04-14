@@ -13,6 +13,10 @@ If you use [**Kali Linux**](https://www.kali.org), Install [**Metasploit-Framewo
 $ sudo apt-get install metasploit-framework
 ```
 
+### **Video**
+
+[![Click here to view the tutorial](https://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg)](https://youtu.be/yRJ-O-FQUQY)
+
 
 ### **Usage**
 
